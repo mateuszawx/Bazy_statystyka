@@ -109,7 +109,7 @@ BEGIN
     FOR i IN 1..10 LOOP
         DBMS_OUTPUT.PUT_LINE('Informacje o departamencie o ID ' || v_departments(i).department_id);
         DBMS_OUTPUT.PUT_LINE('Nazwa departamentu: ' || v_departments(i).department_name);
-        DBMS_OUTPUT.PUT_LINE('ID mened�era: ' || v_departments(i).manager_id);
+        DBMS_OUTPUT.PUT_LINE('ID menedżera: ' || v_departments(i).manager_id);
         DBMS_OUTPUT.PUT_LINE('ID lokalizacji: ' || v_departments(i).location_id);
         DBMS_OUTPUT.NEW_LINE;
     END LOOP;
@@ -131,9 +131,9 @@ BEGIN
         v_salary := rekord.salary;
         
         IF v_salary > 3100 THEN
-            DBMS_OUTPUT.PUT_LINE(v_last_name || ' - nie dawa� podwy�ki');
+            DBMS_OUTPUT.PUT_LINE(v_last_name || ' - nie dawać podwyżki');
         ELSE
-            DBMS_OUTPUT.PUT_LINE(v_last_name || ' - da� podwy�k�');
+            DBMS_OUTPUT.PUT_LINE(v_last_name || ' - dać podwyżkę');
         END IF;
     END LOOP;
 END;
@@ -151,7 +151,7 @@ DECLARE
     v_last_name employees.last_name%TYPE;
     v_salary employees.salary%TYPE;
 BEGIN
-    DBMS_OUTPUT.PUT_LINE('Pracownicy z zarobkami 1000-5000 i imieniem zawieraj�cym "a" lub "A":');
+    DBMS_OUTPUT.PUT_LINE('Pracownicy z zarobkami 1000-5000 i imieniem zawierającym "a" lub "A":');
     FOR emp_rec IN c_employee_salary(1000, 5000, 'a') LOOP
         v_first_name := emp_rec.first_name;
         v_last_name := emp_rec.last_name;
@@ -159,7 +159,7 @@ BEGIN
         DBMS_OUTPUT.PUT_LINE(v_first_name || ' ' || v_last_name || ', Zarobki: ' || v_salary);
     END LOOP;
     DBMS_OUTPUT.NEW_LINE;
-    DBMS_OUTPUT.PUT_LINE('Pracownicy z zarobkami 5000-20000 i imieniem zawieraj�cym "u" lub "U":');
+    DBMS_OUTPUT.PUT_LINE('Pracownicy z zarobkami 5000-20000 i imieniem zawierającym "u" lub "U":');
     FOR emp_rec IN c_employee_salary(5000, 20000, 'u') LOOP
         v_first_name := emp_rec.first_name;
         v_last_name := emp_rec.last_name;
@@ -168,6 +168,145 @@ BEGIN
     END LOOP;
 END;
 
+-- ZAD 9 a
+CREATE OR REPLACE PROCEDURE AddJob (
+    p_job_id IN jobs.job_id%TYPE,
+    p_job_title IN jobs.job_title%TYPE
+) AS
+BEGIN
+
+    INSERT INTO Jobs (job_id, job_title)
+    VALUES (p_job_id, p_job_title);
+    DBMS_OUTPUT.PUT_LINE('Dodano nową pozycję do tabeli Jobs.');
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Wystąpił nieoczekiwany błąd: ' || SQLERRM);
+END AddJob;
+
+Call AddJob ('DEV','Sql_DEV');
+Call AddJob ('HR','HR_Manager');
+
+-- ZAD 9 b
+SET SERVEROUTPUT ON;
+
+CREATE OR REPLACE PROCEDURE EditJobTitle(
+    p_JOB_id JOBS.job_id%TYPE,
+    p_JOB_title JOBS.job_title%TYPE
+)
+AS
+    no_jobs_updated EXCEPTION;
+    PRAGMA EXCEPTION_INIT(no_jobs_updated, -20000);
+BEGIN
+    UPDATE JOBS SET job_title = p_JOB_title WHERE job_id = p_JOB_id;
+    IF SQL%ROWCOUNT = 0 THEN
+        RAISE_APPLICATION_ERROR(-20001, 'Brak zaktualizowanych wierszy w tabeli Jobs.');
+    ELSE
+        COMMIT;
+        DBMS_OUTPUT.PUT_LINE('Zaktualizowano ' || SQL%ROWCOUNT || ' wierszy w tabeli Jobs.');
+    END IF;
+EXCEPTION
+    WHEN no_jobs_updated THEN
+        DBMS_OUTPUT.PUT_LINE('Brak zaktualizowanych wierszy w tabeli Jobs.');
+END EditJobTitle;
+
+CALL EditJobTitle('HR','HR_Main');
+CALL EditJobTitle('TEST_Test', 'TEST_notfound');
+
+-- ZAD 9 c
+CREATE OR REPLACE PROCEDURE DeleteJob(
+    p_job_id JOBS.job_id%TYPE
+)
+AS
+    no_jobs_deleted EXCEPTION;
+    PRAGMA EXCEPTION_INIT(no_jobs_deleted, -20001);
+BEGIN
+    DELETE FROM Jobs WHERE job_id = p_job_id;
+    
+    IF SQL%ROWCOUNT = 0 THEN
+        RAISE no_jobs_deleted;
+    ELSE
+        COMMIT;
+        DBMS_OUTPUT.PUT_LINE('Usunięto ' || SQL%ROWCOUNT || ' wiersz(y) z tabeli Jobs.');
+    END IF;
+    
+EXCEPTION
+    WHEN no_jobs_deleted THEN
+        DBMS_OUTPUT.PUT_LINE('Brak usuniętych wierszy w tabeli Jobs.');
+END DeleteJob;
+/
+CALL DeleteJob('DEV');
+CALL DeleteJob('DEV');
+
+-- ZAD 9 d
+CREATE OR REPLACE PROCEDURE EmployeeSalary(
+    p_employee_id Employees.employee_id%TYPE,
+    o_Zarobki OUT employees.salary%TYPE,
+    o_Nazwisko OUT employees.last_name%TYPE
+)
+AS
+BEGIN
+    SELECT salary, last_name INTO o_zarobki, o_Nazwisko FROM employees
+    WHERE employees.employee_id = p_employee_id;
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        DBMS_OUTPUT.PUT_LINE('Brak pracownika o podanym ID.');
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Błąd podczas pobierania danych pracownika: ' || SQLERRM);
+END EmployeeSalary;
+/
+DECLARE
+  v_Zarobki NUMBER;
+  v_Nazwisko VARCHAR2(50);
+BEGIN
+    EmployeeSalary(132, v_Zarobki, v_Nazwisko);
+    IF v_Zarobki IS NOT NULL THEN
+        DBMS_OUTPUT.PUT_LINE('Zarobki pracownika: ' || v_Zarobki);
+        DBMS_OUTPUT.PUT_LINE('Nazwisko pracownika: ' || v_Nazwisko);
+    ELSE
+        DBMS_OUTPUT.PUT_LINE('Brak pracownika o podanym ID lub wystąpił błąd: ' || v_Nazwisko);
+    END IF;
+END;
+
+
+-- ZAD 9 e
+CREATE OR REPLACE PROCEDURE AddEmployee(
+    p_First_name employees.first_name%TYPE,
+    p_Last_name employees.last_name%TYPE,
+    p_Salary employees.salary%TYPE DEFAULT 1000,
+    p_email employees.email%TYPE DEFAULT 'example@mail.com',
+    p_phone_number employees.phone_number%TYPE DEFAULT NULL,
+    p_hire_date employees.hire_date%TYPE DEFAULT SYSDATE,
+    p_job_id employees.job_id%TYPE DEFAULT 'IT_PROG',
+    p_commission_pct employees.commission_pct%TYPE DEFAULT NULL,
+    p_manager_id employees.manager_id%TYPE DEFAULT NULL,
+    p_department_id employees.department_id%TYPE DEFAULT 60
+)
+AS
+BEGIN
+    -- Sprawdź, czy wynagrodzenie jest większe niż 20000
+    IF p_Salary > 20000 THEN
+        DBMS_OUTPUT.PUT_LINE('Wynagrodzenie przekracza 20000, nie można dodać pracownika.');
+    ELSE
+        -- Wstaw nowego pracownika do tabeli employees
+        INSERT INTO employees (
+            employee_id, first_name, last_name, email, phone_number,
+            hire_date, job_id, salary, commission_pct, manager_id, department_id
+        )
+        VALUES (
+            (SELECT MAX(employee_id) + 1 FROM employees), p_First_name, p_Last_name, p_email, p_phone_number,
+            p_hire_date, p_job_id, p_Salary, p_commission_pct, p_manager_id, p_department_id
+        );
+
+        COMMIT;
+    END IF;
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Błąd podczas dodawania pracownika: ' || SQLERRM);
+END AddEmployee;
+
+CALL AddEmployee('Carl', 'Johnson', 6900);
+CALL AddEmployee('Tommy', 'Vercetti', 21000);
+CALL AddEmployee('Xin', 'Zhao', 5000, 'xinzhao@gmail.com');
 
 
 
