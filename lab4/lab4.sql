@@ -131,12 +131,12 @@ END;
 
 --ZAD 1
 -- 6
-/*CREATE OR REPLACE FUNCTION CountEmployeesAndDepartmentsInCountry(country_name_param IN VARCHAR2) RETURN VARCHAR2
+CREATE OR REPLACE FUNCTION CountEmployeesAndDepartmentsInCountry(country_name_param IN VARCHAR2) RETURN VARCHAR2
 IS
     v_employee_count NUMBER;
     v_department_count NUMBER;
 BEGIN
-    -- Zlicz pracownik�w w danym kraju
+    -- Zlicz pracowników w danym kraju
     SELECT COUNT(*) INTO v_employee_count
     FROM employees e
     JOIN departments d ON e.department_id = d.department_id
@@ -155,16 +155,25 @@ BEGIN
         RAISE_APPLICATION_ERROR(-20001, 'Brak danych dla podanego kraju');
     END IF;
 
-    RETURN 'Liczba pracownik�w: ' || v_employee_count || ', Liczba departament�w: ' || v_department_count;
+    RETURN 'Liczba pracowników: ' || TO_CHAR(v_employee_count) || ', Liczba departamentów: ' || TO_CHAR(v_department_count);
 END CountEmployeesAndDepartmentsInCountry;
+
+
+SET SERVEROUTPUT ON;
+DECLARE
+    v_count_info VARCHAR2(100);
+BEGIN
+    v_count_info := CountEmployeesAndDepartmentsInCountry('United Kingdom'); -- Zmień kraj na dowolny, dla którego istnieją dane w bazie.
+    DBMS_OUTPUT.PUT_LINE(v_count_info);
+END;
 
 DECLARE
     v_count_info VARCHAR2(100);
 BEGIN
-    v_count_info := CountEmployeesAndDepartmentsInCountry('Italy'); -- Przyk�adowa nazwa kraju
+    v_count_info := CountEmployeesAndDepartmentsInCountry('United States of America'); -- Zmień kraj na dowolny, dla którego istnieją dane w bazie.
     DBMS_OUTPUT.PUT_LINE(v_count_info);
 END;
-*/ -- NIE DZIA�A NIE WIEM CZEMU ++++++++++++++++POPRAWI�
+
 
 
 -- ZAD2
@@ -319,3 +328,9 @@ WHERE job_id = 'AD_PRES';
 SELECT job_id, job_title, min_salary, max_salary
 FROM jobs
 WHERE job_id = 'AD_PRES';
+
+
+-- ZAD3
+--1
+
+
