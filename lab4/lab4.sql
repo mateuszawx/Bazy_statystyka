@@ -12,6 +12,8 @@ BEGIN
 
     RETURN v_job_name;
 END GetJobName;
+/
+
 
 SET SERVEROUTPUT ON;
 DECLARE
@@ -42,7 +44,7 @@ SET SERVEROUTPUT ON;
 DECLARE
     v_earnings NUMBER;
 BEGIN
-    v_earnings := AnnualEarnings(115); -- Przyk�adowe ID pracownika
+    v_earnings := AnnualEarnings(115); -- Przyk?adowe ID pracownika
     DBMS_OUTPUT.PUT_LINE('Roczne zarobki pracownika: ' || v_earnings);
 END;
 /
@@ -53,7 +55,7 @@ CREATE OR REPLACE FUNCTION ExtractAreaCode(phone_number_param IN VARCHAR2) RETUR
 IS
     v_area_code VARCHAR2(10);
 BEGIN
-    -- Wyodr�bnij numer kierunkowy z numeru telefonu (pierwsze trzy znaki)
+    -- Wyodr?bnij numer kierunkowy z numeru telefonu (pierwsze trzy znaki)
     v_area_code := SUBSTR(phone_number_param, 1, 3);
     
     RETURN v_area_code;
@@ -62,7 +64,7 @@ END ExtractAreaCode;
 DECLARE
     v_area_code VARCHAR2(10);
 BEGIN
-    v_area_code := ExtractAreaCode('590.423.4569'); -- Przyk�adowy numer telefonu
+    v_area_code := ExtractAreaCode('590.423.4569'); -- Przyk?adowy numer telefonu
     DBMS_OUTPUT.PUT_LINE('Numer kierunkowy: ' || v_area_code);
 END;
 /
@@ -74,13 +76,13 @@ CREATE OR REPLACE FUNCTION ChangeCase(input_string_param IN VARCHAR2) RETURN VAR
 IS
     v_result_string VARCHAR2(4000);
 BEGIN
-    -- Konwertuj ca�y ci�g na ma�e litery
+    -- Konwertuj cały ciąg na małe litery
     v_result_string := LOWER(input_string_param);
     
-    -- Zmie� pierwsz� liter� na wielk�
+    -- Zmień pierwszą literę na wielką
     v_result_string := INITCAP(v_result_string);
     
-    -- Zmie� ostatni� liter� na wielk�
+    -- Zmień ostatnią literę na wielką
     v_result_string := SUBSTR(v_result_string, 1, LENGTH(v_result_string) - 1) || UPPER(SUBSTR(v_result_string, -1));
     
     RETURN v_result_string;
@@ -89,7 +91,16 @@ END ChangeCase;
 DECLARE
     v_result VARCHAR2(4000);
 BEGIN
-    v_result := ChangeCase('aAAAAAAAa'); -- Przyk�adowy ci�g znak�w
+    v_result := ChangeCase('aAAAAAAAa'); -- Przykładowy ciąg znaków
+    DBMS_OUTPUT.PUT_LINE('Wynik: ' || v_result);
+END;
+/
+
+
+DECLARE
+    v_result VARCHAR2(4000);
+BEGIN
+    v_result := ChangeCase('aAAAAAAAa'); -- Przyk?adowy ci?g znak?w
     DBMS_OUTPUT.PUT_LINE('Wynik: ' || v_result);
 END;
 /
@@ -103,7 +114,7 @@ IS
     v_day NUMBER;
 BEGIN
     IF LENGTH(pesel_param) <> 11 THEN
-        RETURN 'Nieprawid�owy PESEL';
+        RETURN 'Nieprawid?owy PESEL';
     END IF;
     
     v_year := TO_NUMBER(SUBSTR(pesel_param, 1, 2));
@@ -123,7 +134,7 @@ END PeselToDate;
 DECLARE
     v_date_of_birth VARCHAR2(10);
 BEGIN
-    v_date_of_birth := PeselToDate('89012512345'); -- Przyk�adowy numer PESEL
+    v_date_of_birth := PeselToDate('89012512345'); -- Przyk?adowy numer PESEL
     DBMS_OUTPUT.PUT_LINE('Data urodzenia: ' || v_date_of_birth);
 END;
 /
@@ -332,5 +343,297 @@ WHERE job_id = 'AD_PRES';
 
 -- ZAD3
 --1
+CREATE OR REPLACE PACKAGE Paczka_1 AS
+    PROCEDURE AddJob(
+        p_job_id IN jobs.job_id%TYPE,
+        p_job_title IN jobs.job_title%TYPE
+    );
+
+    PROCEDURE EditJobTitle(
+        p_JOB_id JOBS.job_id%TYPE,
+        p_JOB_title JOBS.job_title%TYPE
+    );
+
+    PROCEDURE DeleteJob(
+        p_job_id JOBS.job_id%TYPE
+    );
+
+    PROCEDURE EmployeeSalary(
+        p_employee_id Employees.employee_id%TYPE,
+        o_Zarobki OUT employees.salary%TYPE,
+        o_Nazwisko OUT employees.last_name%TYPE
+    );
+
+    PROCEDURE AddEmployee(
+        p_First_name employees.first_name%TYPE,
+        p_Last_name employees.last_name%TYPE,
+        p_Salary employees.salary%TYPE DEFAULT 1000,
+        p_email employees.email%TYPE DEFAULT 'example@mail.com',
+        p_phone_number employees.phone_number%TYPE DEFAULT NULL,
+        p_hire_date employees.hire_date%TYPE DEFAULT SYSDATE,
+        p_job_id employees.job_id%TYPE DEFAULT 'IT_PROG',
+        p_commission_pct employees.commission_pct%TYPE DEFAULT NULL,
+        p_manager_id employees.manager_id%TYPE DEFAULT NULL,
+        p_department_id employees.department_id%TYPE DEFAULT 60
+    );
+END Paczka_1;
+
+CREATE OR REPLACE PACKAGE BODY Paczka_1 AS
+    PROCEDURE AddJob(
+        p_job_id IN jobs.job_id%TYPE,
+        p_job_title IN jobs.job_title%TYPE
+    ) AS
+    BEGIN
+       
+        INSERT INTO Jobs (job_id, job_title)
+        VALUES (p_job_id, p_job_title);
+
+        DBMS_OUTPUT.PUT_LINE('Dodano nową pozycję do tabeli Jobs.');
+    EXCEPTION
+        WHEN OTHERS THEN
+            
+            DBMS_OUTPUT.PUT_LINE('Wystąpił nieoczekiwany błąd: ' || SQLERRM);
+    END AddJob;
+
+PROCEDURE AddEmployee(
+        p_First_name employees.first_name%TYPE,
+        p_Last_name employees.last_name%TYPE,
+        p_Salary employees.salary%TYPE DEFAULT 1000,
+        p_email employees.email%TYPE DEFAULT 'example@mail.com',
+        p_phone_number employees.phone_number%TYPE DEFAULT NULL,
+        p_hire_date employees.hire_date%TYPE DEFAULT SYSDATE,
+        p_job_id employees.job_id%TYPE DEFAULT 'IT_PROG',
+        p_commission_pct employees.commission_pct%TYPE DEFAULT NULL,
+        p_manager_id employees.manager_id%TYPE DEFAULT NULL,
+        p_department_id employees.department_id%TYPE DEFAULT 60
+    ) AS
+    BEGIN
+    
+        IF p_Salary > 20000 THEN
+            DBMS_OUTPUT.PUT_LINE('Wynagrodzenie przekracza 20000, nie można dodać pracownika.');
+        ELSE
+            INSERT INTO employees (
+                employee_id, first_name, last_name, email, phone_number,
+                hire_date, job_id, salary, commission_pct, manager_id, department_id
+            )
+            VALUES (
+                (SELECT MAX(employee_id) + 1 FROM employees),
+                p_First_name, p_Last_name, p_email, p_phone_number,
+                p_hire_date, p_job_id, p_Salary, p_commission_pct, p_manager_id, p_department_id
+            );
+
+            COMMIT;
+        END IF;
+    EXCEPTION
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('Błąd podczas dodawania pracownika: ' || SQLERRM);
+    END AddEmployee;
+
+
+    PROCEDURE EditJobTitle(
+        p_JOB_id JOBS.job_id%TYPE,
+        p_JOB_title JOBS.job_title%TYPE
+    ) AS
+        no_jobs_updated EXCEPTION;
+        PRAGMA EXCEPTION_INIT(no_jobs_updated, -20000);
+    BEGIN
+       
+        UPDATE JOBS SET job_title = p_JOB_title WHERE job_id = p_JOB_id;
+        IF SQL%ROWCOUNT = 0 THEN
+            RAISE_APPLICATION_ERROR(-20001, 'Brak zaktualizowanych wierszy w tabeli Jobs.');
+        ELSE
+            COMMIT;
+            DBMS_OUTPUT.PUT_LINE('Zaktualizowano ' || SQL%ROWCOUNT || ' wierszy w tabeli Jobs.');
+        END IF;
+    EXCEPTION
+        WHEN no_jobs_updated THEN
+            DBMS_OUTPUT.PUT_LINE('Brak zaktualizowanych wierszy w tabeli Jobs.');
+    END EditJobTitle;
+
+    
+
+    PROCEDURE DeleteJob(
+        p_job_id JOBS.job_id%TYPE
+    ) AS
+        no_jobs_deleted EXCEPTION;
+        PRAGMA EXCEPTION_INIT(no_jobs_deleted, -20001);
+    BEGIN
+        
+        DELETE FROM Jobs WHERE job_id = p_job_id;
+
+        IF SQL%ROWCOUNT = 0 THEN
+            RAISE no_jobs_deleted;
+        ELSE
+            COMMIT;
+            DBMS_OUTPUT.PUT_LINE('Usunięto ' || SQL%ROWCOUNT || ' wiersz(y) z tabeli Jobs.');
+        END IF;
+    EXCEPTION
+        WHEN no_jobs_deleted THEN
+            DBMS_OUTPUT.PUT_LINE('Brak usuniętych wierszy w tabeli Jobs.');
+    END DeleteJob;
+
+    
+
+    PROCEDURE EmployeeSalary(
+        p_employee_id Employees.employee_id%TYPE,
+        o_Zarobki OUT employees.salary%TYPE,
+        o_Nazwisko OUT employees.last_name%TYPE
+    ) AS
+    BEGIN
+       
+        SELECT salary, last_name INTO o_zarobki, o_Nazwisko FROM employees
+        WHERE employees.employee_id = p_employee_id;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            DBMS_OUTPUT.PUT_LINE('Brak pracownika o podanym ID.');
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('Błąd podczas pobierania danych pracownika: ' || SQLERRM);
+    END EmployeeSalary;
+
+    
+END Paczka_1;
+
+DECLARE
+    v_salary employees.salary%TYPE;
+    v_last_name employees.last_name%TYPE;
+BEGIN
+    Paczka_1.EmployeeSalary(101, v_salary, v_last_name);
+    DBMS_OUTPUT.PUT_LINE('Zarobki: ' || v_salary || ', Nazwisko: ' || v_last_name);
+END;
+/
+
+CREATE OR REPLACE PACKAGE Paczka_2 AS
+    
+    PROCEDURE AddRegion(
+        p_region_id IN regions.region_id%TYPE,
+        p_region_name IN regions.region_name%TYPE
+    );
+
+   
+    PROCEDURE EditRegionName(
+        p_region_id IN regions.region_id%TYPE,
+        p_new_region_name IN regions.region_name%TYPE
+    );
+
+   
+    PROCEDURE DeleteRegion(
+        p_region_id IN regions.region_id%TYPE
+    );
+
+    
+    FUNCTION GetRegionInfo(
+        p_region_id IN regions.region_id%TYPE
+    ) RETURN VARCHAR2;
+END Paczka_2;
+/
+
+CREATE OR REPLACE PACKAGE BODY Paczka_2 AS
+    PROCEDURE AddRegion(
+        p_region_id IN regions.region_id%TYPE,
+        p_region_name IN regions.region_name%TYPE
+    ) AS
+    BEGIN
+        INSERT INTO regions (region_id, region_name)
+        VALUES (p_region_id, p_region_name);
+        COMMIT;
+        DBMS_OUTPUT.PUT_LINE('Dodano nowy region.');
+    EXCEPTION
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('Wystąpił nieoczekiwany błąd: ' || SQLERRM);
+    END AddRegion;
+
+    PROCEDURE EditRegionName(
+        p_region_id IN regions.region_id%TYPE,
+        p_new_region_name IN regions.region_name%TYPE
+    ) AS
+        no_regions_updated EXCEPTION;
+        PRAGMA EXCEPTION_INIT(no_regions_updated, -20000);
+    BEGIN
+        UPDATE regions SET region_name = p_new_region_name WHERE region_id = p_region_id;
+        IF SQL%ROWCOUNT = 0 THEN
+            RAISE_APPLICATION_ERROR(-20001, 'Brak zaktualizowanych wierszy w tabeli Regions.');
+        ELSE
+            COMMIT;
+            DBMS_OUTPUT.PUT_LINE('Zaktualizowano ' || SQL%ROWCOUNT || ' wierszy w tabeli Regions.');
+        END IF;
+    EXCEPTION
+        WHEN no_regions_updated THEN
+            DBMS_OUTPUT.PUT_LINE('Brak zaktualizowanych wierszy w tabeli Regions.');
+    END EditRegionName;
+
+    PROCEDURE DeleteRegion(
+        p_region_id IN regions.region_id%TYPE
+    ) AS
+        no_regions_deleted EXCEPTION;
+        PRAGMA EXCEPTION_INIT(no_regions_deleted, -20001);
+    BEGIN
+        DELETE FROM regions WHERE region_id = p_region_id;
+        IF SQL%ROWCOUNT = 0 THEN
+            RAISE no_regions_deleted;
+        ELSE
+            COMMIT;
+            DBMS_OUTPUT.PUT_LINE('Usunięto ' || SQL%ROWCOUNT || ' wiersz(y) z tabeli Regions.');
+        END IF;
+    EXCEPTION
+        WHEN no_regions_deleted THEN
+            DBMS_OUTPUT.PUT_LINE('Brak usuniętych wierszy w tabeli Regions.');
+    END DeleteRegion;
+
+    FUNCTION GetRegionInfo(
+        p_region_id IN regions.region_id%TYPE
+    ) RETURN VARCHAR2 AS
+        v_info VARCHAR2(100);
+    BEGIN
+        SELECT 'Region ID: ' || TO_CHAR(region_id) || ', Region Name: ' || region_name
+        INTO v_info
+        FROM regions
+        WHERE region_id = p_region_id;
+
+        RETURN v_info;
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            RETURN 'Brak regionu o podanym ID.';
+        WHEN OTHERS THEN
+            RETURN 'Błąd podczas pobierania danych regionu: ' || SQLERRM;
+    END GetRegionInfo;
+
+END Paczka_2;
+/
+
+-- Dodawanie nowego regionu
+DECLARE
+    v_region_id regions.region_id%TYPE := 5; 
+    v_region_name regions.region_name%TYPE := 'TestRegion';
+BEGIN
+    Paczka_2.AddRegion(v_region_id, v_region_name);
+END;
+/
+
+-- Edytowanie nazwy regionu
+DECLARE
+    v_region_id_to_edit regions.region_id%TYPE := 5; 
+    v_new_region_name regions.region_name%TYPE := 'UpdatedRegionName';
+BEGIN
+    Paczka_2.EditRegionName(v_region_id_to_edit, v_new_region_name);
+END;
+/
+
+-- Pobieranie informacji o regionie
+DECLARE
+    v_region_id_to_get_info regions.region_id%TYPE := 5; 
+    v_region_info VARCHAR2(100);
+BEGIN
+    v_region_info := Paczka_2.GetRegionInfo(v_region_id_to_get_info);
+    DBMS_OUTPUT.PUT_LINE(v_region_info);
+END;
+/
+
+-- Usuwanie regionu
+DECLARE
+    v_region_id_to_delete regions.region_id%TYPE := 5;
+BEGIN
+    Paczka_2.DeleteRegion(v_region_id_to_delete);
+END;
+/
 
 
